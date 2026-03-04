@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YCM - 客户每日更新报告 (Daily Update Report)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            padding: 15mm;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+        
+        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; text-align: center;}
+        h2 { background-color: #003366 !important; color: white !important; padding: 6px 12px; font-size: 15px; margin-top: 20px; margin-bottom: 10px; -webkit-print-color-adjust: exact; }
+        
+        .grid-header { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        label { font-weight: bold; font-size: 12px; display: block; margin-bottom: 4px; color: #333; }
+        
+        input[type="text"], input[type="date"], input[type="number"], textarea {
+            width: 100%; box-sizing: border-box; border: 1px solid #ccc; padding: 6px; font-size: 12px; font-family: inherit;
+        }
+        input[readonly] { background-color: #f4f4f4 !important; font-weight: bold; color: #003366; }
+        textarea { height: 60px; resize: vertical; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 10px; }
+        th, td { border: 1px solid #999; padding: 6px; text-align: center; vertical-align: middle; }
+        th { background-color: #f0f0f0 !important; -webkit-print-color-adjust: exact; }
+        .text-left { text-align: left; }
+
+        /* 图表布局 */
+        .charts-top { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; margin-bottom: 15px; }
+        .chart-box { border: 1px solid #ddd; padding: 10px; height: 180px; position: relative; }
+        .chart-bottom { width: 100%; border: 1px solid #ddd; padding: 10px; height: 180px; box-sizing: border-box; position: relative; margin-bottom: 20px;}
+
+        /* 明细表格专属样式 */
+        .detail-table td { padding: 2px; height: 25px;}
+        .detail-table input { border: none; background: transparent; padding: 4px; text-align: center; width: 100%; box-sizing: border-box;}
+        .detail-table input:focus { outline: 1px solid #007bff; background: #fff; }
+
+        .btn-print {
+            position: fixed; top: 20px; right: 20px; padding: 10px 20px; 
+            background: #007bff; color: white; border: none; cursor: pointer; 
+            font-weight: bold; border-radius: 5px; z-index: 1000;
+        }
+
+        /* 增减行按钮样式 */
+        .btn-add {
+            background-color: #28a745; color: white; border: none; padding: 5px 12px;
+            font-size: 12px; border-radius: 4px; cursor: pointer; margin-bottom: 15px;
+            display: inline-block; margin-right: 5px;
+        }
+        .btn-add:hover { background-color: #218838; }
+        
+        .btn-remove {
+            background-color: #dc3545; color: white; border: none; padding: 5px 12px;
+            font-size: 12px; border-radius: 4px; cursor: pointer; margin-bottom: 15px;
+            display: inline-block;
+        }
+        .btn-remove:hover { background-color: #c82333; }
+
+        .highlight-box { background-color: #eef5f9; border: 1px solid #b8daff; padding: 10px; border-radius: 4px; text-align: center; margin-bottom: 15px; -webkit-print-color-adjust: exact;}
+        .highlight-number { font-size: 24px; font-weight: bold; color: #003366; }
+
+        @media print {
+            body { background: none; padding: 0; }
+            .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
+            .btn-print, .btn-add, .btn-remove { display: none !important; } /* 打印时隐藏加减按钮 */
+            input, textarea { border: none; border-bottom: 1px solid #ccc; background: transparent !important; }
+            .detail-table input { border-bottom: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
+
+    <div class="page">
+        <h1>Workforce Daily Update Report <br><span style="font-size: 16px; color: #555;">(人力资源每日报告)</span></h1>
+        
+        <div class="grid-header">
+            <div><label>Date (日期):</label><input type="date" id="reportDate"></div>
+            <div><label>Client Name (客户名称):</label><input type="text" value="Midea (Example)"></div>
+            <div><label>Prepared By (制表人):</label><input type="text" value="YCM Consulting"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
+            <div class="highlight-box">
+                <label>Total Active (当前在职)</label>
+                <div class="highlight-number" id="lbl_active">0</div>
+            </div>
+            <div class="highlight-box">
+                <label>Actual Attendance (实际出勤)</label>
+                <div class="highlight-number" id="lbl_attend">0</div>
+            </div>
+            <div class="highlight-box">
+                <label>Attendance Rate (出勤率)</label>
+                <div class="highlight-number" id="lbl_rate" style="color: #28a745;">0%</div>
+            </div>
+            <div class="highlight-box">
+                <label>Turnover Today (今日异动)</label>
+                <div class="highlight-number" id="lbl_turnover" style="color: #dc3545;">+0 / -0</div>
+            </div>
+        </div>
+
+        <h2>1. Headcount & Attendance (人数与出勤统计)</h2>
+        <table>
+            <tr>
+                <th class="text-left" style="width: 30%;">Yesterday Headcount (昨日人数)</th>
+                <td><input type="number" id="v_yest" value="0" oninput="calculate()"></td>
+                <th class="text-left" style="width: 30%;">Leaves (请假)</th>
+                <td><input type="number" id="v_leave" value="0" oninput="calculate()"></td>
+            </tr>
+            <tr>
+                <th class="text-left">New Joiners (今日入职)* <br><span style="font-size: 9px; font-weight: normal;">*根据下方明细表自动计算</span></th>
+                <td><input type="number" id="v_new" value="0" readonly style="background: #eef5f9 !important;"></td>
+                <th class="text-left">Absences (旷工)</th>
+                <td><input type="number" id="v_absent" value="0" oninput="calculate()"></td>
+            </tr>
+            <tr>
+                <th class="text-left">Resignations (今日离职)* <br><span style="font-size: 9px; font-weight: normal;">*根据下方明细表自动计算</span></th>
+                <td><input type="number" id="v_resign" value="0" readonly style="background: #fff3cd !important;"></td>
+                <th class="text-left">Actual Attendance (实际出勤)</th>
+                <td><input type="number" id="v_actual" readonly></td>
+            </tr>
+            <tr>
+                <th class="text-left" style="color:#003366; font-size: 14px;">Today Active (今日在职总数)</th>
+                <td><input type="number" id="v_today" readonly style="color:#003366; font-size: 14px;"></td>
+                <th class="text-left" style="color:#28a745; font-size: 14px;">Attendance Rate (出勤率)</th>
+                <td><input type="text" id="v_rate" readonly style="color:#28a745; font-size: 14px;"></td>
+            </tr>
+        </table>
+
+        <h2>2. Visual Data (数据可视化)</h2>
+        <div class="charts-top">
+            <div class="chart-box"><canvas id="chart_attendance"></canvas></div>
+            <div class="chart-box"><canvas id="chart_movement"></canvas></div>
+        </div>
+        <div class="chart-bottom"><canvas id="chart_docs"></canvas></div>
+
+        <div style="page-break-before: always;"></div>
+
+        <h2 style="margin-top: 0;">3. Myanmar/Foreigner Document Status (外籍员工证件进度)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th class="text-left">Document Type (证件类型)</th>
+                    <th>Done (已完成)</th>
+                    <th>Ongoing (处理中)</th>
+                    <th>Not Started (未办理)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-left">Work Permit (工作证)</td>
+                    <td><input type="number" id="doc_wp_done" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_wp_ong" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_wp_no" value="0" oninput="updateDocsChart()"></td>
+                </tr>
+                <tr>
+                    <td class="text-left">SSO (社保)</td>
+                    <td><input type="number" id="doc_sso_done" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_sso_ong" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_sso_no" value="0" oninput="updateDocsChart()"></td>
+                </tr>
+                <tr>
+                    <td class="text-left">Bank Account (银行卡)</td>
+                    <td><input type="number" id="doc_bank_done" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_bank_ong" value="0" oninput="updateDocsChart()"></td>
+                    <td><input type="number" id="doc_bank_no" value="0" oninput="updateDocsChart()"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>4. Daily Movement Details (今日人员异动明细)</h2>
+        
+        <label>A. New Joiners Today (今日入职名单)</label>
+        <table class="detail-table" style="margin-bottom: 5px;">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">No.<br>序号</th>
+                    <th style="width: 15%;">Emp ID<br>工号</th>
+                    <th style="width: 20%;">Name<br>姓名</th>
+                    <th style="width: 10%;">Gender<br>性别</th>
+                    <th style="width: 15%;">Dept/Line<br>部门</th>
+                    <th style="width: 15%;">Join Date<br>入职日期</th>
+                    <th style="width: 20%;">Remark<br>备注</th>
+                </tr>
+            </thead>
+            <tbody id="joiner_table">
+                <tr><td>1</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>2</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>3</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>4</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>5</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>6</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>7</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>8</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>9</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>10</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+            </tbody>
+        </table>
+        <button class="btn-add" onclick="addRow('joiner_table', 'new-id')">+ Add Row (增加一行)</button>
+        <button class="btn-remove" onclick="removeRow('joiner_table')">- Remove Row (减少一行)</button>
+
+        <label style="margin-top: 15px;">B. Resignations Today (今日离职名单)</label>
+        <table class="detail-table" style="margin-bottom: 5px;">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">No.<br>序号</th>
+                    <th style="width: 15%;">Emp ID<br>工号</th>
+                    <th style="width: 20%;">Name<br>姓名</th>
+                    <th style="width: 15%;">Join Date<br>入职日期</th>
+                    <th style="width: 15%;">Resign Date<br>离职日期</th>
+                    <th style="width: 10%;">Tenure<br>工龄</th>
+                    <th style="width: 20%;">Reason<br>离职原因</th>
+                </tr>
+            </thead>
+            <tbody id="resign_table">
+                <tr><td>1</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>2</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>3</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>4</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>5</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>6</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>7</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>8</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>9</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>10</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+            </tbody>
+        </table>
+        <button class="btn-add" onclick="addRow('resign_table', 'res-id')">+ Add Row (增加一行)</button>
+        <button class="btn-remove" onclick="removeRow('resign_table')">- Remove Row (减少一行)</button>
+
+        <h2 style="margin-top:20px;">5. Latest Employee Roster (最新花名册提供情况)</h2>
+        <div style="font-size: 12px; padding: 10px; border: 1px solid #ccc; background: #fafafa;">
+            <input type="checkbox" checked> <strong>The latest updated Employee Roster (Excel) has been attached with this report.</strong><br>
+            (最新版在职员工花名册、离职统计明细已作为Excel附件随此报告一并发送给客户。)
+        </div>
+
+        <div style="margin-top: 20px; border-top: 2px solid #333; padding-top: 10px; display: grid; grid-template-columns: 1fr 1fr;">
+            <div><label>YCM Representative Signature:</label><div style="height:30px;"></div></div>
+            <div><label>Date:</label><input type="text" id="signDate" style="border:none; border-bottom:1px solid #ccc; width:150px;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reportDate').valueAsDate = new Date();
+        document.getElementById('signDate').value = new Date().toLocaleDateString();
+
+        let attChart, moveChart, docsChart;
+
+        window.onload = function() {
+            attChart = new Chart(document.getElementById('chart_attendance').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: ['Attended', 'Leave/Absent'], datasets: [{ data: [0, 100], backgroundColor: ['#28a745', '#dc3545'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Attendance Ratio' }, legend:{position:'bottom'} } }
+            });
+
+            moveChart = new Chart(document.getElementById('chart_movement').getContext('2d'), {
+                type: 'bar',
+                data: { labels: ['Joined', 'Resigned'], datasets: [{ label:'People', data: [0, 0], backgroundColor: ['#007bff', '#ffc107'] }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: 'Daily Turnover' }, legend:{display:false} } }
+            });
+
+            docsChart = new Chart(document.getElementById('chart_docs').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Work Permit', 'SSO', 'Bank'],
+                    datasets: [
+                        { label: 'Done', data: [0,0,0], backgroundColor: '#28a745' },
+                        { label: 'Ongoing', data: [0,0,0], backgroundColor: '#ffc107' },
+                        { label: 'Not Started', data: [0,0,0], backgroundColor: '#dc3545' }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    scales: { x: { stacked: true }, y: { stacked: true } },
+                    plugins: { title: { display: true, text: 'Document Status Tracker' }, legend:{display:true, position:'bottom'} } 
+                }
+            });
+            
+            calculate();
+        };
+
+        // 增加表格行
+        function addRow(tableId, inputClass) {
+            const tbody = document.getElementById(tableId);
+            const rowCount = tbody.rows.length + 1;
+            const tr = document.createElement('tr');
+            
+            tr.innerHTML = `
+                <td>${rowCount}</td>
+                <td><input type="text" class="${inputClass}" oninput="countMovement()"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // 减少表格行
+        function removeRow(tableId) {
+            const tbody = document.getElementById(tableId);
+            // 确保至少保留1行
+            if (tbody.rows.length > 1) {
+                tbody.deleteRow(-1); // 删掉最后一行
+                countMovement();     // 重新清点人数并更新图表
+            } else {
+                alert("At least one row must remain. (至少保留一行)");
+            }
+        }
+
+        function val(id) { return Number(document.getElementById(id).value) || 0; }
+        
+        // 自动计算表格里的工号数量
+        function countMovement() {
+            let newJoiners = 0;
+            let resignations = 0;
+
+            document.querySelectorAll('.new-id').forEach(function(input) {
+                if(input.value.trim() !== "") newJoiners++;
+            });
+
+            document.querySelectorAll('.res-id').forEach(function(input) {
+                if(input.value.trim() !== "") resignations++;
+            });
+
+            document.getElementById('v_new').value = newJoiners;
+            document.getElementById('v_resign').value = resignations;
+
+            calculate();
+        }
+
+        function calculate() {
+            let yest = val('v_yest'), newly = val('v_new'), res = val('v_resign');
+            let leave = val('v_leave'), absent = val('v_absent');
+
+            let todayActive = yest + newly - res;
+            let actualAtt = todayActive - leave - absent;
+            let rate = todayActive > 0 ? ((actualAtt / todayActive) * 100).toFixed(1) : 0;
+
+            document.getElementById('v_today').value = todayActive;
+            document.getElementById('v_actual').value = actualAtt;
+            document.getElementById('v_rate').value = rate + '%';
+
+            document.getElementById('lbl_active').innerText = todayActive;
+            document.getElementById('lbl_attend').innerText = actualAtt;
+            document.getElementById('lbl_rate').innerText = rate + '%';
+            document.getElementById('lbl_turnover').innerText = `+${newly} / -${res}`;
+
+            let nonAtt = leave + absent;
+            attChart.data.datasets[0].data = [actualAtt, nonAtt];
+            attChart.update();
+
+            moveChart.data.datasets[0].data = [newly, res];
+            moveChart.update();
+        }
+
+        function updateDocsChart() {
+            let wp = [val('doc_wp_done'), val('doc_wp_ong'), val('doc_wp_no')];
+            let sso = [val('doc_sso_done'), val('doc_sso_ong'), val('doc_sso_no')];
+            let bank = [val('doc_bank_done'), val('doc_bank_ong'), val('doc_bank_no')];
+
+            docsChart.data.datasets[0].data = [wp[0], sso[0], bank[0]]; 
+            docsChart.data.datasets[1].data = [wp[1], sso[1], bank[1]]; 
+            docsChart.data.datasets[2].data = [wp[2], sso[2], bank[2]]; 
+            docsChart.update();
+        }
+    </script>
+</body>
+</html>

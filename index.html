@@ -23,7 +23,7 @@
             box-sizing: border-box;
         }
         
-        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; text-align: center;}
+        h1 { color: #003366; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; text-align: center; border: none;}
         h2 { background-color: #003366 !important; color: white !important; padding: 6px 12px; font-size: 15px; margin-top: 20px; margin-bottom: 10px; -webkit-print-color-adjust: exact; }
         
         .grid-header { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
@@ -77,7 +77,7 @@
         @media print {
             body { background: none; padding: 0; }
             .page { box-shadow: none; margin: 0; width: 100%; padding: 0; }
-            .btn-print, .btn-add, .btn-remove { display: none !important; } /* 打印时隐藏加减按钮 */
+            .btn-print, .btn-add, .btn-remove { display: none !important; } 
             input, textarea { border: none; border-bottom: 1px solid #ccc; background: transparent !important; }
             .detail-table input { border-bottom: none; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -88,10 +88,10 @@
 
     <button class="btn-print" onclick="window.print()">Print / Save PDF</button>
 
-   <div class="page">
+    <div class="page">
         <div style="display: flex; align-items: center; border-bottom: 3px solid #003366; padding-bottom: 10px; margin-bottom: 20px;">
-            <img src="ycmlogo.jpg" alt="Company Logo" style="height: 60px; object-fit: contain;">
-            <h1 style="flex-grow: 1; text-align: center; border: none; padding: 0; margin: 0;">
+            <img src="logo.png" alt="Logo" style="height: 60px; object-fit: contain;">
+            <h1 style="flex-grow: 1; text-align: center; margin: 0;">
                 Workforce Daily Update Report <br><span style="font-size: 16px; color: #555;">(人力资源每日报告)</span>
             </h1>
             <div style="width: 100px;"></div> </div>
@@ -126,17 +126,17 @@
             <tr>
                 <th class="text-left" style="width: 30%;">Yesterday Headcount (昨日人数)</th>
                 <td><input type="number" id="v_yest" value="0" oninput="calculate()"></td>
-                <th class="text-left" style="width: 30%;">Leaves (请假)</th>
-                <td><input type="number" id="v_leave" value="0" oninput="calculate()"></td>
+                <th class="text-left" style="width: 30%;">Leaves (请假)* <br><span style="font-size: 9px; font-weight: normal;">*根据明细表自动计算</span></th>
+                <td><input type="number" id="v_leave" value="0" readonly style="background: #eef5f9 !important;"></td>
             </tr>
             <tr>
-                <th class="text-left">New Joiners (今日入职)* <br><span style="font-size: 9px; font-weight: normal;">*根据下方明细表自动计算</span></th>
+                <th class="text-left">New Joiners (今日入职)* <br><span style="font-size: 9px; font-weight: normal;">*根据明细表自动计算</span></th>
                 <td><input type="number" id="v_new" value="0" readonly style="background: #eef5f9 !important;"></td>
                 <th class="text-left">Absences (旷工)</th>
                 <td><input type="number" id="v_absent" value="0" oninput="calculate()"></td>
             </tr>
             <tr>
-                <th class="text-left">Resignations (今日离职)* <br><span style="font-size: 9px; font-weight: normal;">*根据下方明细表自动计算</span></th>
+                <th class="text-left">Resignations (今日离职)* <br><span style="font-size: 9px; font-weight: normal;">*根据明细表自动计算</span></th>
                 <td><input type="number" id="v_resign" value="0" readonly style="background: #fff3cd !important;"></td>
                 <th class="text-left">Actual Attendance (实际出勤)</th>
                 <td><input type="number" id="v_actual" readonly></td>
@@ -158,7 +158,7 @@
 
         <div style="page-break-before: always;"></div>
 
-        <img src="ycmlogo.jpg" alt="Company Logo" style="height: 50px; margin-bottom: 15px; margin-top: 10px; display: block;">
+        <img src="logo.png" alt="Logo" style="height: 50px; margin-bottom: 15px; margin-top: 10px; display: block;">
 
         <h2 style="margin-top: 0;">3. Myanmar/Foreigner Document Status (外籍员工证件进度)</h2>
         <table>
@@ -192,7 +192,7 @@
             </tbody>
         </table>
 
-        <h2>4. Daily Movement Details (今日人员异动明细)</h2>
+        <h2>4. Daily Movement & Leave Details (今日人员异动与请假明细)</h2>
         
         <label>A. New Joiners Today (今日入职名单)</label>
         <table class="detail-table" style="margin-bottom: 5px;">
@@ -213,14 +213,9 @@
                 <tr><td>3</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
                 <tr><td>4</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
                 <tr><td>5</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>6</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>7</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>8</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>9</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>10</td><td><input type="text" class="new-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
             </tbody>
         </table>
-        <button class="btn-add" onclick="addRow('joiner_table', 'new-id')">+ Add Row (增加一行)</button>
+        <button class="btn-add" onclick="addRow('joiner_table', 'new-id', 7)">+ Add Row (增加一行)</button>
         <button class="btn-remove" onclick="removeRow('joiner_table')">- Remove Row (减少一行)</button>
 
         <label style="margin-top: 15px;">B. Resignations Today (今日离职名单)</label>
@@ -242,15 +237,33 @@
                 <tr><td>3</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
                 <tr><td>4</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
                 <tr><td>5</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>6</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>7</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>8</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>9</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                <tr><td>10</td><td><input type="text" class="res-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
             </tbody>
         </table>
-        <button class="btn-add" onclick="addRow('resign_table', 'res-id')">+ Add Row (增加一行)</button>
+        <button class="btn-add" onclick="addRow('resign_table', 'res-id', 7)">+ Add Row (增加一行)</button>
         <button class="btn-remove" onclick="removeRow('resign_table')">- Remove Row (减少一行)</button>
+
+        <label style="margin-top: 15px;">C. Leaves Today (今日请假明细)</label>
+        <table class="detail-table" style="margin-bottom: 5px;">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">No.<br>序号</th>
+                    <th style="width: 15%;">Emp ID<br>工号</th>
+                    <th style="width: 20%;">Name<br>姓名</th>
+                    <th style="width: 15%;">Leave Type<br>请假类型</th>
+                    <th style="width: 25%;">Reason<br>事由</th>
+                    <th style="width: 20%;">Remark<br>备注</th>
+                </tr>
+            </thead>
+            <tbody id="leave_table">
+                <tr><td>1</td><td><input type="text" class="leave-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text" placeholder="Sick/Personal"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>2</td><td><input type="text" class="leave-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text" placeholder="Sick/Personal"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>3</td><td><input type="text" class="leave-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text" placeholder="Sick/Personal"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>4</td><td><input type="text" class="leave-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text" placeholder="Sick/Personal"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                <tr><td>5</td><td><input type="text" class="leave-id" oninput="countMovement()"></td><td><input type="text"></td><td><input type="text" placeholder="Sick/Personal"></td><td><input type="text"></td><td><input type="text"></td></tr>
+            </tbody>
+        </table>
+        <button class="btn-add" onclick="addRow('leave_table', 'leave-id', 6)">+ Add Row (增加一行)</button>
+        <button class="btn-remove" onclick="removeRow('leave_table')">- Remove Row (减少一行)</button>
 
         <h2 style="margin-top:20px;">5. Latest Employee Roster (最新花名册提供情况)</h2>
         <div style="font-size: 12px; padding: 10px; border: 1px solid #ccc; background: #fafafa;">
@@ -303,31 +316,26 @@
             calculate();
         };
 
-        // 增加表格行
-        function addRow(tableId, inputClass) {
+        // 智能增加表格行，根据列数(cols)自动生成
+        function addRow(tableId, inputClass, cols) {
             const tbody = document.getElementById(tableId);
             const rowCount = tbody.rows.length + 1;
             const tr = document.createElement('tr');
             
-            tr.innerHTML = `
-                <td>${rowCount}</td>
-                <td><input type="text" class="${inputClass}" oninput="countMovement()"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-            `;
+            let html = `<td>${rowCount}</td><td><input type="text" class="${inputClass}" oninput="countMovement()"></td>`;
+            for(let i=0; i < cols - 2; i++) {
+                html += `<td><input type="text"></td>`;
+            }
+            tr.innerHTML = html;
             tbody.appendChild(tr);
         }
 
         // 减少表格行
         function removeRow(tableId) {
             const tbody = document.getElementById(tableId);
-            // 确保至少保留1行
             if (tbody.rows.length > 1) {
-                tbody.deleteRow(-1); // 删掉最后一行
-                countMovement();     // 重新清点人数并更新图表
+                tbody.deleteRow(-1); 
+                countMovement(); // 重新清点人数
             } else {
                 alert("At least one row must remain. (至少保留一行)");
             }
@@ -335,10 +343,11 @@
 
         function val(id) { return Number(document.getElementById(id).value) || 0; }
         
-        // 自动计算表格里的工号数量
+        // 自动计算：入职、离职、请假
         function countMovement() {
             let newJoiners = 0;
             let resignations = 0;
+            let leaves = 0;
 
             document.querySelectorAll('.new-id').forEach(function(input) {
                 if(input.value.trim() !== "") newJoiners++;
@@ -348,8 +357,13 @@
                 if(input.value.trim() !== "") resignations++;
             });
 
+            document.querySelectorAll('.leave-id').forEach(function(input) {
+                if(input.value.trim() !== "") leaves++;
+            });
+
             document.getElementById('v_new').value = newJoiners;
             document.getElementById('v_resign').value = resignations;
+            document.getElementById('v_leave').value = leaves; // 同步请假人数
 
             calculate();
         }
